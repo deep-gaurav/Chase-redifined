@@ -1,0 +1,353 @@
+[gd_scene load_steps=13 format=1]
+
+[ext_resource path="res://scripts/cop_creator.gd" type="Script" id=1]
+[ext_resource path="res://skybox/cmm_eezabad/eez.cbm" type="CubeMap" id=2]
+[ext_resource path="res://bike/warbike.tscn" type="PackedScene" id=3]
+[ext_resource path="res://heightmapshader.tres" type="Material" id=4]
+[ext_resource path="res://models/plane_subdivided_high.msh" type="Mesh" id=5]
+[ext_resource path="res://scripts/plane.gd" type="Script" id=6]
+
+[sub_resource type="Environment" id=1]
+
+ambient_light/enabled = true
+ambient_light/color = Color( 0.816406, 0.806839, 0.806839, 1 )
+ambient_light/energy = 1.0
+fxaa/enabled = false
+background/mode = 4
+background/color = Color( 0, 0, 0, 1 )
+background/cubemap = ExtResource( 2 )
+background/energy = 1.0
+background/scale = 1.0
+background/glow = 0.0
+background/canvas_max_layer = null
+glow/enabled = false
+glow/blur_passes = 1
+glow/blur_scale = 1
+glow/blur_strength = 1
+glow/blur_blend_mode = null
+glow/bloom = 0.0
+glow/bloom_treshold = 0.5
+dof_blur/enabled = false
+dof_blur/blur_passes = 1
+dof_blur/begin = 100.0
+dof_blur/range = 10.0
+hdr/enabled = false
+hdr/tonemapper = 0
+hdr/exposure = 0.4
+hdr/white = 1.0
+hdr/glow_treshold = 0.95
+hdr/glow_scale = 0.2
+hdr/min_luminance = 0.4
+hdr/max_luminance = 8.0
+hdr/exposure_adj_speed = 0.5
+fog/enabled = false
+fog/begin = 100.0
+fog/begin_color = Color( 0, 0, 0, 1 )
+fog/end_color = Color( 0, 0, 0, 1 )
+fog/attenuation = 1.0
+fog/bg = true
+bcs/enabled = false
+bcs/brightness = 1.0
+bcs/contrast = 1.0
+bcs/saturation = 1.0
+srgb/enabled = false
+
+[sub_resource type="GDScript" id=2]
+
+script/source = "extends KinematicBody
+
+# class member variables go here, for example:
+# var a = 2
+# var b = \"textvar\"
+var bike
+var campos
+var lookpos
+func _ready():
+	# Called every time the node is added to the scene.
+	# Initialization here
+	bike=get_parent().get_node(\"warbike\")
+	campos=bike.get_node(\"Position3D 3\")
+	lookpos=bike.get_node(\"Position3D 2\")
+	set_fixed_process(true)
+func _fixed_process(delta):
+	var dir=campos.get_global_transform().origin-get_global_transform().origin
+	var distance=dir.length()
+	move(dir.normalized()*distance/10)
+	look_at(lookpos.get_global_transform().origin,Vector3(0,1,0))"
+
+[sub_resource type="GDScript" id=3]
+
+script/source = "extends Camera
+
+# class member variables go here, for example:
+# var a = 2
+# var b = \"textvar\"
+
+func _ready():
+	# Called every time the node is added to the scene.
+	# Initialization here
+	set_fixed_process(true)
+func _fixed_process(delta):
+	set_global_transform(get_node(\"../../Position3D 2\").get_global_transform())
+"
+
+[sub_resource type="GDScript" id=4]
+
+script/source = "extends Camera
+
+# class member variables go here, for example:
+# var a = 2
+# var b = \"textvar\"
+var campos
+func _ready():
+	# Called every time the node is added to the scene.
+	# Initialization here
+	campos=get_node(\"../../.\")
+	set_fixed_process(true)
+func _fixed_process(delta):
+	set_translation(Vector3(campos.get_translation().x,get_translation().y,campos.get_translation().z))
+"
+
+[sub_resource type="ImageTexture" id=5]
+
+flags = 7
+image = Image()
+size = Vector2( 10, 10 )
+storage = 0
+lossy_quality = 0.7
+
+[sub_resource type="PlaneShape" id=6]
+
+plane = Plane( 0, 1, 0, 0 )
+
+[node name="Node" type="Node"]
+
+[node name="Spatial" type="Spatial" parent="."]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+script/script = ExtResource( 1 )
+cop_distance = 100
+max_cop = 5
+bikepath = NodePath("../warbike")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+environment = SubResource( 1 )
+
+[node name="Cambody" type="KinematicBody" parent="."]
+
+editor/display_folded = true
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( -0.999349, 0, -0.0360672, -0.0102911, 0.958429, 0.285146, 0.0345679, 0.285331, -0.957805, 0, 1.91139, -2.01127 )
+input/ray_pickable = true
+input/capture_on_drag = false
+shape_count = 0
+collision/layers = 1
+collision/mask = 1
+collide_with/static = true
+collide_with/kinematic = true
+collide_with/rigid = true
+collide_with/character = true
+collision/margin = 0.001
+script/script = SubResource( 2 )
+
+[node name="Camera" type="Camera" parent="Cambody"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+projection = 0
+fov = 65.0
+near = 0.1
+far = 100.0
+keep_aspect = 1
+current = false
+visible_layers = 1048575
+environment = null
+h_offset = 0.0
+v_offset = 0.0
+
+[node name="warbike" parent="." instance=ExtResource( 3 )]
+
+editor/display_folded = true
+motion/engine_force = 200.0
+max_part = 10.0
+
+[node name="Position3D 3" type="Position3D" parent="warbike"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( -0.999349, 0, -0.0360672, -0.0102911, 0.958429, 0.285146, 0.0345679, 0.285331, -0.957805, 0, 1.91139, -2.01127 )
+
+[node name="Viewport" type="Viewport" parent="warbike"]
+
+editor/display_folded = true
+rect = Rect2( 0, 0, 700, 80 )
+own_world = false
+world = null
+transparent_bg = false
+render_target/enabled = true
+render_target/v_flip = false
+render_target/clear_on_new_frame = true
+render_target/filter = false
+render_target/gen_mipmaps = false
+render_target/update_mode = 2
+audio_listener/enable_2d = false
+audio_listener/enable_3d = false
+physics/object_picking = false
+gui/disable_input = false
+
+[node name="Camera" type="Camera" parent="warbike/Viewport"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 1, 0, 0, 0, 0.98957, 0.144053, 0, -0.144053, 0.98957, 0, 1.33945, 0.0167445 )
+projection = 0
+fov = 65.0
+near = 0.1
+far = 100.0
+keep_aspect = 1
+current = true
+visible_layers = 1048575
+environment = null
+h_offset = 0.0
+v_offset = 0.0
+script/script = SubResource( 3 )
+
+[node name="Position3D 2" type="Position3D" parent="warbike"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 1, 0, 0, 0, 0.98957, 0.144053, 0, -0.144053, 0.98957, 0, 1.72354, 0.0167445 )
+
+[node name="topcam" type="Position3D" parent="warbike"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( -1, 3.25841e-07, 0, 9.19296e-14, 2.8213e-07, 1, 3.25841e-07, 1, -2.8213e-07, 0, 10.4265, 0 )
+
+[node name="Viewport 2" type="Viewport" parent="warbike"]
+
+rect = Rect2( 0, 0, 200, 200 )
+own_world = false
+world = null
+transparent_bg = false
+render_target/enabled = true
+render_target/v_flip = false
+render_target/clear_on_new_frame = true
+render_target/filter = false
+render_target/gen_mipmaps = false
+render_target/update_mode = 2
+audio_listener/enable_2d = false
+audio_listener/enable_3d = false
+physics/object_picking = false
+gui/disable_input = false
+
+[node name="Camera" type="Camera" parent="warbike/Viewport 2"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( -1, 3.25841e-07, 0, 9.19296e-14, 2.8213e-07, 1, 3.25841e-07, 1, -2.8213e-07, 0, 10.4265, 0 )
+projection = 1
+size = 20.0
+near = 0.1
+far = 100.0
+keep_aspect = 1
+current = true
+visible_layers = 1048575
+environment = null
+h_offset = 0.0
+v_offset = 0.0
+script/script = SubResource( 4 )
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+editor/display_folded = true
+layer = 1
+offset = Vector2( 0, 0 )
+rotation = 0.0
+scale = Vector2( 1, 1 )
+
+[node name="left" type="TouchScreenButton" parent="CanvasLayer"]
+
+visibility/self_opacity = 0.0
+transform/scale = Vector2( 48.5922, 65.2635 )
+normal = SubResource( 5 )
+pressed = null
+bitmask = null
+shape = null
+shape_centered = true
+shape_visible = true
+passby_press = false
+action = "left"
+visibility_mode = 0
+
+[node name="right" type="TouchScreenButton" parent="CanvasLayer"]
+
+visibility/self_opacity = 0.0
+transform/pos = Vector2( 543.026, -13.6324 )
+transform/scale = Vector2( 48.5922, 65.2635 )
+normal = SubResource( 5 )
+pressed = null
+bitmask = null
+shape = null
+shape_centered = true
+shape_visible = true
+passby_press = false
+action = "right"
+visibility_mode = 0
+
+[node name="ViewportSprite" type="ViewportSprite" parent="CanvasLayer"]
+
+transform/pos = Vector2( 505.61, 40.5059 )
+viewport = NodePath("../../warbike/Viewport")
+
+[node name="ViewportSprite 2" type="ViewportSprite" parent="CanvasLayer"]
+
+transform/pos = Vector2( 209.593, 434.948 )
+viewport = NodePath("../../warbike/Viewport 2")
+
+[node name="StaticBody" type="StaticBody" parent="."]
+
+editor/display_folded = true
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 3.13947, 0, 0, 0, 3.13947, 0, 0, 0, 3.13947, 0, -0.596255, 0 )
+input/ray_pickable = true
+input/capture_on_drag = false
+shape_count = 1
+shapes/0/shape = SubResource( 6 )
+shapes/0/transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.703503, 0 )
+shapes/0/trigger = false
+collision/layers = 1
+collision/mask = 1
+friction = 1.0
+bounce = 0.0
+constant_linear_velocity = Vector3( 0, 0, 0 )
+constant_angular_velocity = Vector3( 0, 0, 0 )
+
+[node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.703503, 0 )
+shape = SubResource( 6 )
+trigger = false
+_update_shape_index = 0
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 7.68607, 0, 0, 0, 11.1976, 0, 0, 0, 7.68607, 0, 0.552775, 0 )
+layers = 1
+geometry/visible = true
+geometry/material_override = ExtResource( 4 )
+geometry/cast_shadow = 1
+geometry/receive_shadows = true
+geometry/range_begin = 0.0
+geometry/range_end = 0.0
+geometry/extra_cull_margin = 0.0
+geometry/billboard = false
+geometry/billboard_y = false
+geometry/depth_scale = false
+geometry/visible_in_all_rooms = false
+geometry/use_baked_light = false
+geometry/baked_light_tex_id = 0
+mesh/mesh = ExtResource( 5 )
+mesh/skeleton = NodePath("..")
+material/0 = null
+script/script = ExtResource( 6 )
+
+
